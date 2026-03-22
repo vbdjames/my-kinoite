@@ -20,7 +20,7 @@ RUN curl -Lo /etc/yum.repos.d/fedora-multimedia.repo \
     && rpm-ostree install \
         kmod-evdi \
         displaylink \
-    && systemctl enable displaylink-driver.service \
+    && systemctl enable displaylink.service \
     && rpm-ostree cleanup -m
 
 # =============================================================================
