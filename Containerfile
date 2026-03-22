@@ -45,6 +45,7 @@ RUN rpm-ostree install \
         stow \
         alacritty \
         neovim \
+	tmux \
     && rpm-ostree cleanup -m
 
 # =============================================================================
