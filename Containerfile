@@ -48,6 +48,13 @@ RUN rpm-ostree install \
     && rpm-ostree cleanup -m
 
 # =============================================================================
+# REMOVE SYSTEM FIREFOX
+# Replaced by the Flatpak version for better sandboxing and independent updates.
+# =============================================================================
+RUN rpm-ostree override remove firefox firefox-langpacks \
+    && rpm-ostree cleanup -m
+
+# =============================================================================
 # FLATPAK REMOTE — Flathub
 # Adds Flathub so Discover and `flatpak install` work out of the box.
 # Actual Flatpak installs happen at runtime via dotfiles/install.sh.
