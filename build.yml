@@ -1,0 +1,62 @@
+name: Build and Push OCI Image
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+  schedule:
+    # Rebuild nightly at 04:00 UTC to pick up base image updates
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    # Allow manual trigger from the GitHub Actions UI
+
+env:
+  REGISTRY: ghcr.io
+  # IMAGE_NAME must match your GitHub repo name: ghcr.io/<owner>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  FEDORA_VERSION: "42"
+
+jobs:
+  build-and-push:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # Tag with Fedora version (e.g. :42)
+            type=raw,value=${{ env.FEDORA_VERSION }}
+            # Tag with Fedora version + date (e.g. :42-20250101)
+            type=raw,value=${{ env.FEDORA_VERSION }}-{{date 'YYYYMMDD'}}
+            # Tag :latest always points to main branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            FEDORA_VERSION=${{ env.FEDORA_VERSION }}
