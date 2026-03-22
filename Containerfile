@@ -43,6 +43,8 @@ RUN rpm-ostree install \
         fastfetch \
         zsh \
         stow \
+        alacritty \
+        neovim \
     && rpm-ostree cleanup -m
 
 # =============================================================================
