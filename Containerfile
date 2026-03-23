@@ -3,7 +3,8 @@
 # Base: quay.io/fedora/fedora-kinoite (official Fedora Atomic KDE image)
 # =============================================================================
 
-ARG FEDORA_VERSION=42
+ARG FEDORA_VERSION=43
+FROM quay.io/fedora/fedora-kinoite:${FEDORA_VERSION}
 
 # =============================================================================
 # CONTAINER + DEV TOOLING
