@@ -6,35 +6,6 @@
 ARG FEDORA_VERSION=42
 
 # =============================================================================
-# AKMODS-EXTRA — prebuilt kernel modules from Universal Blue
-# Used to provide evdi for DisplayLink support.
-# =============================================================================
-FROM ghcr.io/ublue-os/akmods:main-42 AS akmods-extra
-
-FROM quay.io/fedora/fedora-kinoite:${FEDORA_VERSION}
-
-# =============================================================================
-# DISPLAYLINK / EVDI
-# evdi kernel module comes from Universal Blue's prebuilt akmods-extra image —
-# compatible with ostree/immutable systems unlike the negativo17 akmod approach
-# (akmods.service refuses to run when /run/ostree-booted exists).
-# The displaylink userspace driver still comes from negativo17.
-# =============================================================================
-COPY --from=akmods-extra /rpms/ /tmp/rpms
-RUN find /tmp/rpms
-RUN rpm-ostree install \
-        /tmp/rpms/ublue-os/ublue-os-akmods*.rpm \
-        /tmp/rpms/kmods/kmod-evdi*.rpm \
-    && rm -rf /tmp/rpms \
-    && rpm-ostree cleanup -m
-
-RUN curl -Lo /etc/yum.repos.d/fedora-multimedia.repo \
-        https://negativo17.org/repos/fedora-multimedia.repo \
-    && rpm-ostree install displaylink \
-    && systemctl enable displaylink.service \
-    && rpm-ostree cleanup -m
-
-# =============================================================================
 # CONTAINER + DEV TOOLING
 # =============================================================================
 RUN rpm-ostree install \
@@ -57,6 +28,18 @@ RUN rpm-ostree install \
         alacritty \
         neovim \
         tmux \
+    && rpm-ostree cleanup -m
+
+# =============================================================================
+# 1PASSWORD
+# Installed as a native RPM (not Flatpak) so the SSH agent works correctly.
+# The Flatpak version cannot expose the agent socket outside the sandbox.
+# =============================================================================
+RUN curl -Lo /etc/yum.repos.d/1password.repo \
+        https://downloads.1password.com/linux/rpm/stable/x86_64/1password.repo \
+    && rpm-ostree install \
+        1password \
+        1password-cli \
     && rpm-ostree cleanup -m
 
 # =============================================================================
