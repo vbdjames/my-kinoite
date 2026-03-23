@@ -38,12 +38,10 @@ RUN rpm-ostree install \
 # =============================================================================
 RUN echo -e "[1password]\nname=1Password Stable Channel\nbaseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://downloads.1password.com/linux/keys/1password.asc" \
         > /etc/yum.repos.d/1password.repo \
-    && rpm-ostree install \
-        --allow-inactive \
+    && dnf install -y \
         1password \
         1password-cli \
-    && rpm-ostree cleanup -m
-
+    && dnf clean all
 # =============================================================================
 # REMOVE SYSTEM FIREFOX
 # Replaced by the Flatpak version for better sandboxing and independent updates.
