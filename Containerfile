@@ -21,6 +21,7 @@ FROM quay.io/fedora/fedora-kinoite:${FEDORA_VERSION}
 # The displaylink userspace driver still comes from negativo17.
 # =============================================================================
 COPY --from=akmods-extra /rpms/ /tmp/rpms
+RUN find /tmp/rpms
 RUN rpm-ostree install \
         /tmp/rpms/ublue-os/ublue-os-akmods*.rpm \
         /tmp/rpms/kmods/kmod-evdi*.rpm \
