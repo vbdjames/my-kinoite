@@ -9,7 +9,7 @@ ARG FEDORA_VERSION=42
 # AKMODS-EXTRA — prebuilt kernel modules from Universal Blue
 # Used to provide evdi for DisplayLink support.
 # =============================================================================
-FROM ghcr.io/ublue-os/akmods-extra:main-42 AS akmods-extra
+FROM ghcr.io/ublue-os/akmods:main-42 AS akmods-extra
 
 FROM quay.io/fedora/fedora-kinoite:${FEDORA_VERSION}
 
