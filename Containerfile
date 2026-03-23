@@ -4,22 +4,32 @@
 # =============================================================================
 
 ARG FEDORA_VERSION=42
+
+# =============================================================================
+# AKMODS-EXTRA — prebuilt kernel modules from Universal Blue
+# Used to provide evdi for DisplayLink support.
+# =============================================================================
+FROM ghcr.io/ublue-os/akmods-extra:main-42 AS akmods-extra
+
 FROM quay.io/fedora/fedora-kinoite:${FEDORA_VERSION}
 
 # =============================================================================
 # DISPLAYLINK / EVDI
-# Uses negativo17's fedora-multimedia repo which provides pre-built kmod-evdi
-# packages (no DKMS required — compatible with rpm-ostree/atomic images).
-#
-# Note: repo file is added manually to /etc/yum.repos.d/ first, then
-# rpm-ostree install is used (not dnf — dnf is not available in Kinoite
-# container builds).
+# evdi kernel module comes from Universal Blue's prebuilt akmods-extra image —
+# compatible with ostree/immutable systems unlike the negativo17 akmod approach
+# (akmods.service refuses to run when /run/ostree-booted exists).
+# The displaylink userspace driver still comes from negativo17.
 # =============================================================================
+COPY --from=akmods-extra /rpms/ /tmp/rpms
+RUN rpm-ostree install \
+        /tmp/rpms/ublue-os/ublue-os-akmods*.rpm \
+        /tmp/rpms/kmods/kmod-evdi*.rpm \
+    && rm -rf /tmp/rpms \
+    && rpm-ostree cleanup -m
+
 RUN curl -Lo /etc/yum.repos.d/fedora-multimedia.repo \
         https://negativo17.org/repos/fedora-multimedia.repo \
-    && rpm-ostree install \
-        kmod-evdi \
-        displaylink \
+    && rpm-ostree install displaylink \
     && systemctl enable displaylink.service \
     && rpm-ostree cleanup -m
 
@@ -45,7 +55,7 @@ RUN rpm-ostree install \
         stow \
         alacritty \
         neovim \
-	tmux \
+        tmux \
     && rpm-ostree cleanup -m
 
 # =============================================================================
@@ -67,3 +77,4 @@ RUN flatpak remote-add --if-not-exists flathub \
 # BOOTC LINT — catches common issues (stray files in /var, etc.)
 # =============================================================================
 RUN bootc container lint
+
